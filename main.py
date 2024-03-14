@@ -51,7 +51,7 @@ app.include_router(customer.customer_router,  tags=["customer"])
 app.include_router(business_register.business_router, tags=["business"])
 
 
-@app.get("/<collection_name>/list")
+@app.get("/collection/list")
 def list_customers(collection_name, token: str = Depends(val_token)):
     if token[0] is True:
         print(collection_name)
