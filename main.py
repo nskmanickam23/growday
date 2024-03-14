@@ -28,7 +28,7 @@ app = FastAPI()
 
 # CORS url
 origins = [
-   *
+   '*'
 ]
 
 # adding middleware
