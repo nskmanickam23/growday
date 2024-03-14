@@ -58,4 +58,4 @@ urllib3==2.2.1
 uvicorn==0.27.1
 Werkzeug==3.0.1
 zipp==3.17.0
-py-bcrypt~=0.4
+bcrypt
