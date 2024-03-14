@@ -28,7 +28,7 @@ app = FastAPI()
 
 # CORS url
 origins = [
-    'http://localhost:3000'
+   *
 ]
 
 # adding middleware
@@ -37,6 +37,7 @@ app.add_middleware(CORSMiddleware,
                    allow_credentials=True,
                    allow_methods=['*'],
                    allow_headers=['*']
+                   
                    )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
