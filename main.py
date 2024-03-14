@@ -30,7 +30,7 @@ app = FastAPI()
 # Allow requests from localhost:3000
 origins = [
     "http://localhost",
-    "http://localhost:3000",
+    "http://localhost:3000","*"
 ]
 
 app.add_middleware(
