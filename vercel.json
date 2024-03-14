@@ -10,7 +10,7 @@
       "src": "/(.*)",
       "headers": {
         "Access-Control-Allow-Origin": "*"
-      }
+      },
       "dest": "main.py"
     }
   ]
