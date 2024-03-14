@@ -9,7 +9,8 @@ from fastapi.security import (OAuth2PasswordRequestForm)
 from database.database import database
 
 auth_router = APIRouter()
-password_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+# password_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+password_context = CryptContext(["sha256_crypt"])
 
 
 def get_hashed_password(password):
