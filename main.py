@@ -27,16 +27,19 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 # CORS url
-origins = ['*']
+# Allow requests from localhost:3000
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+]
 
-# adding middleware
-app.add_middleware(CORSMiddleware,
-                   allow_origins=["http://localhost:3000","*"],
-                   allow_credentials=True,
-                   allow_methods=['*'],
-                   allow_headers=['*'],
-                   expose_headers=["*"]
-                   )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
