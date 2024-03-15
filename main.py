@@ -28,13 +28,13 @@ app = FastAPI()
 
 # # CORS url
 # # Allow requests from localhost:3000
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=['http://127.0.0.1:3000'],
-#     allow_credentials=True,
-#     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-#     allow_headers=['X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=['Content-Type'],
+)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
