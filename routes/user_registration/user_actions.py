@@ -105,7 +105,9 @@ async def login(payload: LoginUserSchema, response: Response):
                         ACCESS_TOKEN_EXPIRES_IN * 60, '/', None, False, False, 'lax')
 
     # Send both access
-    return {'status': 'success', 'access_token': access_token}
+    response = Response()
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    return {'status': 'success', 'access_token': access_token}, response
 
 
 @user_router.post("/user/me")
