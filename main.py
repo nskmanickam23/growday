@@ -2,7 +2,7 @@ import hashlib
 from random import randbytes
 
 import uvicorn
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Response
 
 from routes.authentication import val_token
 from routes.user_registration.user_models import *
