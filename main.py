@@ -67,8 +67,9 @@ def list_customers(collection_name, token: str = Depends(val_token)):
 
 
 @app.get("/health")
-def index():
-    return {"Message": "Service is Up"}
+async def index():
+    async with httpx.AsyncClient() as client:
+        return {"Message": "Service is Up"}
 
 
 if __name__ == "__main__":
