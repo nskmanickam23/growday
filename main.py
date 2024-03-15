@@ -28,18 +28,12 @@ app = FastAPI()
 
 # CORS url
 # Allow requests from localhost:3000
-origins = [
-    "http://localhost",
-    "http://localhost:3000/","*","http://192.168.0.20.3",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
