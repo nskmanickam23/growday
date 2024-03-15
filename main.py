@@ -4,6 +4,7 @@ from random import randbytes
 import uvicorn
 from fastapi import Depends, FastAPI, Response
 import json
+from bson import json_util
 from routes.authentication import val_token
 from routes.user_registration.user_models import *
 from routes import authentication
@@ -48,7 +49,7 @@ app.include_router(customer.customer_router,  tags=["customer"])
 app.include_router(business_register.business_router, tags=["business"])
 
 
-@app.get("/<collection_name>/list")
+@app.get("/collection_name/list")
 def list_customers(collection_name, token: str = Depends(val_token)):
     if token[0] is True:
         print(collection_name)
