@@ -67,9 +67,10 @@ def list_customers(collection_name, token: str = Depends(val_token)):
 
 
 @app.get("/health")
-async def index():
-    async with httpx.AsyncClient() as client:
-        return {"Message": "Service is Up"}
+def index():
+    response = Response()
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    return {"Message": "Service is Up"}, response
 
 
 if __name__ == "__main__":
