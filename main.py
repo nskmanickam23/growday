@@ -39,7 +39,7 @@ app.add_middleware(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 # config for static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(authentication.auth_router,  tags=["authentication"])
 app.include_router(user_actions.user_router, tags=["users"])
