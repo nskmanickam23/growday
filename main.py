@@ -48,16 +48,18 @@ app.include_router(customer.customer_router,  tags=["customer"])
 app.include_router(business_register.business_router, tags=["business"])
 
 
-@app.get("/collection/list")
+@app.get("/<collection_name>/list")
 def list_customers(collection_name, token: str = Depends(val_token)):
     if token[0] is True:
         print(collection_name)
+        print(database)
         if database.collection_exists(collection_name):
             list_collections = database.get_collection(collection_name)
             # Retrieve all documents from the collection
+            print(list_collections)
             records = []
             for document in list_collections.find({}):
-                document.pop('_id')
+                document = json.loads(json_util.dumps(document))
                 records.append(document)
             return {"records": records}
         else:
