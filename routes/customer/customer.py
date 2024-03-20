@@ -20,19 +20,20 @@ async def create_customer(customer: Customer, token: str = Depends(val_token)):
         print(customer_collection)
         customer = customers_collection.find_one({'phone': details["phone"]})
         if not customer:
-            result = customer_collection.insert_one(details)
             token = randbytes(10)
             hashedCode = hashlib.sha256()
             hashedCode.update(token)
             password = hashedCode.hexdigest()
             details['password'] = user_utils.hash_password(password)
-            await Email("verification_code: " + token.hex() + "", "giri1208srinivas@gmail.com").send_email()
+
+            result = customer_collection.insert_one(details)
+            await Email(token.hex(), details['email'], 'customer_register').send_email()
             if result.inserted_id:
-                return {"member": details['name']}
+                return {"status": f"New Customer- {details['name']} added",'message': 'Temporary password successfully sent to your email'}
             else:
                 raise HTTPException(status_code=500, detail="Failed to insert data")
         else:
-            raise HTTPException(status_code=409, detail=f"Customer {customer['phone']} Exists")
+            raise HTTPException(status_code=409, detail=f"Customer {customer['name']} Exists")
 
     else:
         raise HTTPException(status_code=401, detail=token)

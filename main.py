@@ -3,7 +3,8 @@ from random import randbytes
 
 import uvicorn
 from fastapi import Depends, FastAPI
-
+from bson import json_util
+import json
 from routes.authentication import val_token
 from routes.user_registration.user_models import *
 from routes import authentication
@@ -28,7 +29,7 @@ app = FastAPI()
 
 # CORS url
 origins = [
-    'http://localhost:3000'
+    '*'
 ]
 
 # adding middleware
@@ -55,12 +56,14 @@ app.include_router(business_register.business_router, tags=["business"])
 def list_customers(collection_name, token: str = Depends(val_token)):
     if token[0] is True:
         print(collection_name)
+        print(database)
         if database.collection_exists(collection_name):
             list_collections = database.get_collection(collection_name)
             # Retrieve all documents from the collection
+            print(list_collections)
             records = []
             for document in list_collections.find({}):
-                document.pop('_id')
+                document = json.loads(json_util.dumps(document))
                 records.append(document)
             return {"records": records}
         else:

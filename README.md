@@ -1,11 +1,13 @@
-## Growday Backend API 
+## Shop project built with FastAPI 
 ### This repository contains code of API for small e-commerce shop and built on the top of FastAPI framework.
 ### In this repository implemented such functions as:
    1) User registration with OAuth2, passlib[bcrypt];
    2) Sending verification email to confirm user registration with jwt;
-   3) Creating Business;
+   3) Creating supplier company;
    4) User login/logout;
    5) Uploading images for user profile;
+   6) Uploading images of products;
+   7) CRUD functionality.
    
 ### Development tools
 #### stak:

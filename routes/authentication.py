@@ -9,7 +9,8 @@ from fastapi.security import (OAuth2PasswordRequestForm)
 from database.database import database
 
 auth_router = APIRouter()
-password_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+# password_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+password_context = CryptContext(["sha256_crypt"])
 
 
 def get_hashed_password(password):
@@ -53,7 +54,7 @@ async def token_generator(username: str, password: str, register, expires_delta=
     """Token Generation"""
     from datetime import datetime, timedelta
     user = await authenticate_user(username, password, register)
-    REFRESH_TOKEN_EXPIRE_MINUTES = 15
+    REFRESH_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

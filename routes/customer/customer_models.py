@@ -16,7 +16,7 @@ class Customer(BaseModel):
 
 class EditCustomer(BaseModel):
     name: str or None = None
-    email: str or None = None
+    email: str
     phone: str or None = None
 
 

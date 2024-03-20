@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, APIRouter, Request, Cookie, Depends
 from pymongo import ReturnDocument
-
+import json
 from routes.business.business_models import *
 from database.database import database
 from routes.authentication import val_token
@@ -14,8 +14,22 @@ user_collection = database.get_collection('users')
 async def create_business(business: Business, token: str = Depends(val_token)):
     if token[0] is True:
         details = business.dict()
-        business = business_collection.find_one({'name': details["name"]})
-        if not business:
+        search_criteria = {
+            "email": token[1]['email'],
+            "business.0.business_name": details['name']
+        }
+
+        # Find documents matching the search criteria
+        cursor = user_collection.find(search_criteria)
+        print(cursor)
+        # Iterate over the results
+        document_list = []
+        for document in cursor:
+            print("Matching document:", document)
+            document_list.append(document)
+        if document_list:
+            raise HTTPException(status_code=409, detail=f"Business {details['name']} Exists")
+        else:
             result = business_collection.insert_one(details)
             if result.inserted_id:
                 print(result.inserted_id)
@@ -33,9 +47,9 @@ async def create_business(business: Business, token: str = Depends(val_token)):
                     raise HTTPException(status_code=400, detail="Failed to update data")
             else:
                 raise HTTPException(status_code=500, detail="Failed to insert data")
-        else:
-            raise HTTPException(status_code=409, detail=f"Business {business['name']} Exists")
-
+        # else:
+        #     raise HTTPException(status_code=409, detail=f"Business {business['name']} Exists")
+    #
     else:
         raise HTTPException(status_code=401, detail=token)
 
