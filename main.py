@@ -2,9 +2,11 @@ import hashlib
 from random import randbytes
 
 import uvicorn
+
 from fastapi import Depends, FastAPI, Response
 import json
 from bson import json_util
+
 from routes.authentication import val_token
 from routes.user_registration.user_models import *
 from routes import authentication
@@ -27,15 +29,20 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# # CORS url
-# # Allow requests from localhost:3000
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['*'],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=['Content-Type'],
-)
+
+origins = [
+    '*'
+]
+
+# adding middleware
+app.add_middleware(CORSMiddleware,
+                   allow_origins=origins,
+                   allow_credentials=True,
+                   allow_methods=['*'],
+                   allow_headers=['*']
+                   )
+=======
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 

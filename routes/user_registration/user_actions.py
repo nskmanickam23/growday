@@ -7,27 +7,32 @@ from typing import Annotated, Union
 from fastapi import HTTPException, status, APIRouter, Request, Cookie, Depends, Response
 from jose import jwt
 
-from routes.user_registration.user_models import CreateUserSchema, LoginUserSchema
+from routes.user_registration.user_models import CreateUserSchema, LoginUserSchema, PasswordResetRequest
 from database.database import database
 from routes.authentication import val_token
 from routes.user_registration import user_utils
 from routes.emails import Email
+from routes.user_registration.user_utils import create_access_token
 from serializers.userSerializers import userEntity, userResponseEntity
 from config.config import settings
 
 user_router = APIRouter()
 user_collection = database.get_collection('users')
-user_collection.create_index( "expireAt", expireAfterSeconds = 10)
+user_collection.create_index("expireAt", expireAfterSeconds=10)
 
 
 @user_router.post("/user/register")
-async def create_user(payload: CreateUserSchema, request: Request):
+async def create_user(payload: CreateUserSchema):
     # Check if user already exist
 
     find_user = user_collection.find_one({'email': payload.email.lower()})
     if find_user:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                            detail='Account already exist')
+        if find_user['verified'] is False:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail='User Not Verified,Please verify your email address')
+        else:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail='Account already exist')
     else:
         # Compare password and passwordConfirm
         if payload.password != payload.passwordConfirm:
@@ -35,7 +40,7 @@ async def create_user(payload: CreateUserSchema, request: Request):
         #  Hash the password
         payload.password = user_utils.hash_password(payload.password)
         del payload.passwordConfirm
-        payload.role = 'user'
+        payload.role = 'org-admin'
         payload.verified = False
         payload.email = payload.email.lower()
         payload.created_at = datetime.utcnow()
@@ -53,8 +58,11 @@ async def create_user(payload: CreateUserSchema, request: Request):
                 verification_code = base64.b32encode(bytes(verification_code, 'utf-8'))
                 hotp_v = pyotp.HOTP(verification_code)
                 user_collection.find_one_and_update({"_id": result.inserted_id}, {
-                    "$set": {"verification_code": hotp_v.at(0), "VerificationexpireAt":  datetime.utcnow() + timedelta(minutes=10) , "updated_at": datetime.utcnow()}})
-                await Email("verification_code: " + hotp_v.at(0) + "", "giri1208srinivas@gmail.com").send_email()
+                    "$set": {"verification_code": hotp_v.at(0),
+                             "Verification_expireAt": datetime.utcnow() + timedelta(
+                                 minutes=settings.EMAIL_EXPIRATION_TIME_MIN),
+                             "updated_at": datetime.utcnow()}})
+                await Email(hotp_v.at(0), payload.email, 'verification').send_email()
             except Exception as error:
                 user_collection.find_one_and_update({"_id": result.inserted_id}, {
                     "$set": {"verification_code": None, "updated_at": datetime.utcnow()}})
@@ -69,17 +77,13 @@ async def create_user(payload: CreateUserSchema, request: Request):
 @user_router.post('/user/login')
 async def login(payload: LoginUserSchema, response: Response):
     # Check if the user exist
-    # from database import mongo_conn
-    # conn = mongo_conn()
-    # db = conn['growday']
-    # register = db.users
     db_user = user_collection.find_one({'email': payload.email.lower()})
     if not db_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Incorrect Email or Password')
     user = userEntity(db_user)
-    ACCESS_TOKEN_EXPIRES_IN = 15
-    REFRESH_TOKEN_EXPIRES_IN = 60
+    ACCESS_TOKEN_EXPIRES_IN = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    REFRESH_TOKEN_EXPIRES_IN = settings.ACCESS_TOKEN_EXPIRE_MINUTES
     # Check if user verified his email
     if not user['verified']:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -125,10 +129,6 @@ async def user_login(request: Request):
 async def update_user(new_data: dict, token: str = Depends(val_token)):
     if token[0] is True:
         payload = token[1]
-        # from database.database import mongo_conn
-        # conn = mongo_conn()
-        # db = conn['growday']
-        # register = db.users
         user = user_collection.find_one({'email': payload["email"]})
         if user:
             # Update the user data in MongoDB
@@ -139,5 +139,43 @@ async def update_user(new_data: dict, token: str = Depends(val_token)):
             raise HTTPException(status_code=404, detail="User not found")
 
         return {"message": "User updated successfully"}
+    else:
+        raise HTTPException(status_code=401, detail=token)
+
+
+@user_router.post("/request-reset-password/")
+async def request_reset_password(request: PasswordResetRequest):
+    user = user_collection.find_one({'email': request.email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    reset_token = create_access_token(request.email, name=user['name'], role=user['role'])
+    # In a real application, send the reset password email asynchronously
+    try:
+        await Email(reset_token, request.email, 'reset').send_email()
+    except Exception as error:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail='There was an error sending email')
+
+    return {"message": "Password reset email sent"}
+
+
+@user_router.post("/reset-password/")
+async def reset_password(new_password, token: str = Depends(val_token)):
+    if token[0] is True:
+        payload = token[1]
+        user = user_collection.find_one({'email': payload["email"]})
+        if user:
+            # Update the user data in MongoDB
+            new_password = user_utils.hash_password(new_password)
+            print(new_password)
+            result = user_collection.update_one({"_id": user["_id"]}, {"$set": {"password": new_password, "updated_at": datetime.utcnow()}})
+            if result:
+                return {"message": "Password reset successfully"}
+            else:
+                raise HTTPException(status_code=501, detail="Unable to update password")
+
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
     else:
         raise HTTPException(status_code=401, detail=token)

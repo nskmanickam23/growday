@@ -9,6 +9,9 @@ class UserBaseSchema(BaseModel):
     name: str
     email: str
     photo: str
+    organization_name: Optional[str] = None
+    organization_type: Optional[str] = None
+    description: Optional[str] = None
     role: str or None = None
     created_at: datetime or None = None
     updated_at: datetime or None = None
@@ -23,3 +26,7 @@ class CreateUserSchema(UserBaseSchema):
 class LoginUserSchema(BaseModel):
     email: EmailStr
     password: constr(min_length=8)
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr

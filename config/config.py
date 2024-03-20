@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY : str  # should be kept secret
     JWT_REFRESH_SECRET_KEY : str  # should be kept secret
     DATABASE_URL : str
+    EMAIL_EXPIRATION_TIME_MIN: int
 
     class Config:
         env_file = '.env'

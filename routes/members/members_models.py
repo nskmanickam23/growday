@@ -8,5 +8,5 @@ from bson.objectid import ObjectId
 class Members(BaseModel):
     name: str
     email: str
-    password: str
+    role: str
     created_time: datetime

@@ -4,9 +4,12 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from typing import Union, Any
 from config.config import settings
+pwd_context = CryptContext(["sha256_crypt"])
 
 # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 pwd_context = CryptContext(["sha256_crypt"])
+
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 
@@ -51,3 +54,5 @@ def validate_token(token: str) -> dict:
         raise HTTPException(status_code=401, detail="Token has expired")
     except JWTError as e:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+
