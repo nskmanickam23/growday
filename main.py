@@ -41,7 +41,7 @@ app.add_middleware(CORSMiddleware,
                    allow_methods=['*'],
                    allow_headers=['*']
                    )
-=======
+
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
