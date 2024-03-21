@@ -2,11 +2,9 @@ import hashlib
 from random import randbytes
 
 import uvicorn
-
-from fastapi import Depends, FastAPI, Response
-import json
+from fastapi import Depends, FastAPI
 from bson import json_util
-
+import json
 from routes.authentication import val_token
 from routes.user_registration.user_models import *
 from routes import authentication
@@ -31,7 +29,7 @@ from fastapi.encoders import jsonable_encoder
 
 app = FastAPI()
 
-
+# CORS url
 origins = [
     '*'
 ]
@@ -43,31 +41,20 @@ app.add_middleware(CORSMiddleware,
                    allow_methods=['*'],
                    allow_headers=['*']
                    )
-=======
-
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 # config for static files
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-app.include_router(authentication.auth_router,  tags=["authentication"])
+app.include_router(authentication.auth_router, tags=["authentication"])
 app.include_router(user_actions.user_router, tags=["users"])
-app.include_router(members.members_router,  tags=["members"])
-app.include_router(customer.customer_router,  tags=["customer"])
+app.include_router(members.members_router, tags=["members"])
+app.include_router(customer.customer_router, tags=["customer"])
 app.include_router(business_register.business_router, tags=["business"])
 
-class CustomJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, ObjectId):
-            return str(obj)
-        elif isinstance(obj, datetime):
-            return obj.isoformat()
-        else:
-            return super().default(obj)
 
-
-@app.get("/collection_name/list")
+@app.get("/<collection_name>/list")
 def list_customers(collection_name, token: str = Depends(val_token)):
     if token[0] is True:
         print(collection_name)
@@ -80,33 +67,18 @@ def list_customers(collection_name, token: str = Depends(val_token)):
             if find_user:
                 search_criteria = {
                     "User_ids": {
+
                         "$elemMatch": {
-                            "$elemMatch": {
-                                "$in": [
-                                    find_user['_id']
-                                ]
-                            }
+                            "$in": [
+                                find_user['_id']
+                            ]
                         }
+
                     }
                 }
-                print(search_criteria)
-
                 # Find documents matching the search criteria
                 cursor = list_collections.find(search_criteria)
-                # # Iterate over the results
-                # document_list = []
-                # for document in cursor:
-                #     document_list.append(document)
-                # # print(list_collections)
-                # records = []
-                # for document in list_collections.find({}):
-                #     document = json.loads(json_util.dumps(document))
-                #     records.append(document)
-                # print("---",business_list)
-                # print(list(cursor))
                 documents_list = list(cursor)
-                from fastapi.responses import JSONResponse
-
                 return json.loads(json_util.dumps(documents_list))
         else:
             raise HTTPException(status_code=404, detail='Collection Not Found')
@@ -116,10 +88,8 @@ def list_customers(collection_name, token: str = Depends(val_token)):
 
 @app.get("/health")
 def index():
-    response = Response()
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    return {"Message": "Service is Up"}, response
+    return {"Message": "Service is Up"}
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host='0.0.0.0',port=8004)
+    uvicorn.run(app, port=8004)

@@ -10,6 +10,7 @@ from routes.user_registration import user_utils
 
 customer_router = APIRouter()
 customers_collection = database.get_collection('customers')
+user_collection = database.get_collection('users')
 
 
 @customer_router.post("/customer/register")
@@ -19,13 +20,14 @@ async def create_customer(customer: Customer, token: str = Depends(val_token)):
         customer_collection = database.get_collection('customers')
         print(customer_collection)
         customer = customers_collection.find_one({'phone': details["phone"]})
+        find_user = user_collection.find_one({'email': token[1]['email']})
         if not customer:
             token = randbytes(10)
             hashedCode = hashlib.sha256()
             hashedCode.update(token)
             password = hashedCode.hexdigest()
             details['password'] = user_utils.hash_password(password)
-
+            details['User_ids'] = [find_user['_id']]
             result = customer_collection.insert_one(details)
             await Email(token.hex(), details['email'], 'customer_register').send_email()
             if result.inserted_id:
