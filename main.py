@@ -67,7 +67,6 @@ def list_customers(collection_name, token: str = Depends(val_token)):
             if find_user:
                 search_criteria = {
                     "User_ids": {
-
                         "$elemMatch": {
                             "$in": [
                                 find_user['_id']
