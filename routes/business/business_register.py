@@ -14,10 +14,11 @@ user_collection = database.get_collection('users')
 async def create_business(business: Business, token: str = Depends(val_token)):
     if token[0] is True:
         details = business.dict()
-        search_criteria = {
-            "email": token[1]['email'],
-            "business.0.business_name": details['name']
-        }
+        search_criteria ={"email": token[1]['email'], "business": {
+            "$elemMatch": {
+                "business_name": details['name']
+            }
+        }}
 
         # Find documents matching the search criteria
         cursor = user_collection.find(search_criteria)
@@ -30,19 +31,20 @@ async def create_business(business: Business, token: str = Depends(val_token)):
         if document_list:
             raise HTTPException(status_code=409, detail=f"Business {details['name']} Exists")
         else:
+            find_user = user_collection.find_one({'email':token[1]['email']})
             result = business_collection.insert_one(details)
             if result.inserted_id:
-                print(result.inserted_id)
                 update_user = user_collection.update_one({'email': token[1]['email']}, {
                     '$push': {'business': {'business_id': result.inserted_id, 'business_name': details['name']}}},
                                                     upsert=True)
 
                 if update_user:
+
                     update_business_users = business_collection.update_one({'_id': ObjectId(result.inserted_id)}, {
-                        '$push': {'User_ids': [result.inserted_id]}
+                        '$push': {'User_ids': [find_user['_id']]}
                         },upsert=True)
                     if update_business_users:
-                        return {"Business": f"Created Business {details['name']}"}
+                        return {"Business": f"Created Business {details['name']}{update_user}"}
                 else:
                     raise HTTPException(status_code=400, detail="Failed to update data")
             else:
