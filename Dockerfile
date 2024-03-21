@@ -37,7 +37,7 @@ WORKDIR /build/app
 # We could skip this part and then type
 # python -m uvicorn main.app:app ... below
 
-CMD python main.py
+CMD gunicorn main:app --bind 0.0.0.0:8004
 
 # This command runs our uvicorn server
 # See Troubleshoots to understand why we need to type in --host 0.0.0.0 and --port 80
