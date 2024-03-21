@@ -49,10 +49,23 @@ members_collection = database.get_collection('members')
 async def create_member(member: Members, token: str = Depends(val_token)):
     if token[0] is True:
         details = member.dict()
-        customer_collection = database.get_collection('members')
-        print(customer_collection)
         member = members_collection.find_one({'email': details["email"]})
-        if not member:
+        search_criteria ={"email": token[1]['email'], "members": {
+            "$elemMatch": {
+                "member_name": details['name']
+            }
+        }}
+
+        # Find documents matching the search criteria
+        cursor = user_collection.find(search_criteria)
+        # Iterate over the results
+        document_list = []
+        for document in cursor:
+            document_list.append(document)
+        if document_list:
+            raise HTTPException(status_code=409, detail=f"Member {details['name']} Exists")
+        else:
+            find_user = user_collection.find_one({'email': token[1]['email']})
             result = members_collection.insert_one(details)
             if result.inserted_id:
                 update_user = user_collection.update_one({'email': token[1]['email']}, {
@@ -61,13 +74,11 @@ async def create_member(member: Members, token: str = Depends(val_token)):
 
                 if update_user:
                     update_business_users = members_collection.update_one({'_id': ObjectId(result.inserted_id)}, {
-                        '$push': {'User_ids': [result.inserted_id]}
+                        '$push': {'User_ids': find_user['_id']}
                     }, upsert=True)
                     return {"status": f"New member- {details['name']} added"}
             else:
                 raise HTTPException(status_code=500, detail="Failed to insert data")
-        else:
-            raise HTTPException(status_code=409, detail=f"Member {member['email']} Exists")
 
     else:
         raise HTTPException(status_code=401, detail=token)

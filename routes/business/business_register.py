@@ -41,7 +41,7 @@ async def create_business(business: Business, token: str = Depends(val_token)):
                 if update_user:
 
                     update_business_users = business_collection.update_one({'_id': ObjectId(result.inserted_id)}, {
-                        '$push': {'User_ids': [find_user['_id']]}
+                        '$push': {'User_ids': find_user['_id']}
                         },upsert=True)
                     if update_business_users:
                         return {"Business": f"Created Business {details['name']}{update_user}"}
