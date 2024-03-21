@@ -2,9 +2,11 @@ import hashlib
 from random import randbytes
 
 import uvicorn
-from fastapi import Depends, FastAPI
-from bson import json_util
+
+from fastapi import Depends, FastAPI, Response
 import json
+from bson import json_util
+
 from routes.authentication import val_token
 from routes.user_registration.user_models import *
 from routes import authentication
@@ -29,7 +31,7 @@ from fastapi.encoders import jsonable_encoder
 
 app = FastAPI()
 
-# CORS url
+
 origins = [
     '*'
 ]
@@ -41,11 +43,13 @@ app.add_middleware(CORSMiddleware,
                    allow_methods=['*'],
                    allow_headers=['*']
                    )
+=======
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 # config for static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(authentication.auth_router,  tags=["authentication"])
 app.include_router(user_actions.user_router, tags=["users"])
@@ -63,7 +67,7 @@ class CustomJSONEncoder(json.JSONEncoder):
             return super().default(obj)
 
 
-@app.get("/<collection_name>/list")
+@app.get("/collection_name/list")
 def list_customers(collection_name, token: str = Depends(val_token)):
     if token[0] is True:
         print(collection_name)
@@ -112,8 +116,10 @@ def list_customers(collection_name, token: str = Depends(val_token)):
 
 @app.get("/health")
 def index():
-    return {"Message": "Service is Up"}
+    response = Response()
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    return {"Message": "Service is Up"}, response
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8004)
+    uvicorn.run(app, host='0.0.0.0',port=8004)

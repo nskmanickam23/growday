@@ -7,6 +7,9 @@ from config.config import settings
 pwd_context = CryptContext(["sha256_crypt"])
 
 # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+pwd_context = CryptContext(["sha256_crypt"])
+
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 
