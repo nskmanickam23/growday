@@ -13,7 +13,9 @@ from routes.customer import customer
 from routes.business import business_register
 from routes.members import members
 from routes.emails import *
+print("---")
 from database.database import database
+print("++++")
 # auth
 from fastapi.security import (OAuth2PasswordBearer)
 from bson.json_util import dumps, loads
